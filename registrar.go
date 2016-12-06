@@ -3,7 +3,12 @@ package registrar
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
+)
+
+const (
+	defaultHost = "http://localhost:8001"
 )
 
 type Service struct {
@@ -17,13 +22,41 @@ type Registry interface {
 }
 
 type Registrar struct {
-	host   string
-	config map[string]string
+	host string
+}
+
+type ConfigOption struct {
+	host string
+}
+
+type ConfigOptions func(*ConfigOption) error
+
+func SetHost(host string) ConfigOptions {
+	return func(opt *ConfigOption) error {
+		opt.host = host
+		return nil
+	}
 }
 
 // Init - initialise a new service registrar instance
-func Init(host string, config map[string]string) *Registrar {
-	return &Registrar{host, config}
+func Init(options ...ConfigOptions) *Registrar {
+
+	opt := &ConfigOption{}
+
+	for _, op := range options {
+		err := op(opt)
+		if err != nil {
+			log.Fatalf("Error rendering configuration: %v", err)
+		}
+	}
+
+	host := defaultHost
+
+	if opt.host != "" {
+		host = opt.host
+	}
+
+	return &Registrar{host}
 }
 
 // Register - Register a new service.

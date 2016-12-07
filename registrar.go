@@ -1,47 +1,50 @@
 package registrar
 
 import (
-	"bytes"
-	"encoding/json"
 	"log"
-	"net/http"
+
+	"github.com/ewanvalentine/stack-registrar/providers"
+	"github.com/ewanvalentine/stack-registrar/services"
 )
 
 const (
 	defaultHost = "http://localhost:8001"
 )
 
-type Service struct {
-	Name     string
-	Upstream string
-	Host     string
-}
-
 type Registry interface {
-	Register(service Service) error
+	Register(service services.Service) error
 }
 
 type Registrar struct {
-	host string
+	host     string
+	provider providers.Provider
 }
 
-type ConfigOption struct {
-	host string
+type ConfigOptions struct {
+	host     string
+	provider providers.Provider
 }
 
-type ConfigOptions func(*ConfigOption) error
+type ConfigOption func(*ConfigOptions) error
 
-func SetHost(host string) ConfigOptions {
-	return func(opt *ConfigOption) error {
+func SetHost(host string) ConfigOption {
+	return func(opt *ConfigOptions) error {
 		opt.host = host
 		return nil
 	}
 }
 
-// Init - initialise a new service registrar instance
-func Init(options ...ConfigOptions) *Registrar {
+func SetProvider(provider providers.Provider) ConfigOption {
+	return func(opt *ConfigOptions) error {
+		opt.provider = provider
+		return nil
+	}
+}
 
-	opt := &ConfigOption{}
+// Init - initialise a new service registrar instance
+func Init(options ...ConfigOption) *Registrar {
+
+	opt := &ConfigOptions{}
 
 	for _, op := range options {
 		err := op(opt)
@@ -52,21 +55,22 @@ func Init(options ...ConfigOptions) *Registrar {
 
 	host := defaultHost
 
+	provider := providers.Kong(defaultHost)
+
 	if opt.host != "" {
 		host = opt.host
 	}
 
-	return &Registrar{host}
+	if opt.provider != nil {
+		provider = opt.provider
+	}
+
+	// @todo - add environment variable check here
+
+	return &Registrar{host, provider}
 }
 
-// Register - Register a new service.
-func (registrar *Registrar) Register(service Service) error {
-	return registrar.makeRequest(service)
-}
-
-// makeRequest - Make a request to the service registry
-func (registrar *Registrar) makeRequest(service Service) error {
-	data, _ := json.Marshal(service)
-	_, err := http.Post(registrar.host, "application/json", bytes.NewBuffer(data))
-	return err
+// Register - register service
+func (registry *Registrar) Register(service services.Service) error {
+	return registry.provider.Register(service)
 }

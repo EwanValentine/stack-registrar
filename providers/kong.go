@@ -52,7 +52,7 @@ func (provider *KongProvider) Resolve(id string) (*services.Service, error) {
 func (provider *KongProvider) makePostRequest(service KongService) error {
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(service)
-	res, err := http.Post(provider.Host, "application/json; charset=utf-8", b)
+	_, err := http.Post(provider.Host, "application/json; charset=utf-8", b)
 	return err
 }
 

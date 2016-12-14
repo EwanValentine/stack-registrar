@@ -3,8 +3,6 @@ package providers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/ewanvalentine/stack-registrar/services"
@@ -54,10 +52,7 @@ func (provider *KongProvider) Resolve(id string) (*services.Service, error) {
 func (provider *KongProvider) makePostRequest(service KongService) error {
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(service)
-	fmt.Println(b)
 	res, err := http.Post(provider.Host, "application/json; charset=utf-8", b)
-	log.Println(res.Status)
-	log.Println(res.Body)
 	return err
 }
 

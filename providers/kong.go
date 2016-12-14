@@ -3,15 +3,17 @@ package providers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ewanvalentine/stack-registrar/services"
 )
 
 type KongService struct {
-	Name     string
-	Upstream string
-	Host     string
+	Name     string `json:"name"`
+	Upstream string `json:"upstream_url"`
+	Host     string `json:"request_host"`
 }
 
 type KongProvider struct {
@@ -50,8 +52,12 @@ func (provider *KongProvider) Resolve(id string) (*services.Service, error) {
 
 // makeRequest - Make a request to the service registry
 func (provider *KongProvider) makePostRequest(service KongService) error {
-	data, _ := json.Marshal(service)
-	_, err := http.Post(provider.Host, "application/json", bytes.NewBuffer(data))
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(service)
+	fmt.Println(b)
+	res, err := http.Post(provider.Host, "application/json; charset=utf-8", b)
+	log.Println(res.Status)
+	log.Println(res.Body)
 	return err
 }
 

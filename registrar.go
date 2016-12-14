@@ -2,6 +2,7 @@ package registrar
 
 import (
 	"log"
+	"os"
 
 	"github.com/ewanvalentine/stack-registrar/providers"
 	"github.com/ewanvalentine/stack-registrar/services"
@@ -27,6 +28,7 @@ type ConfigOptions struct {
 
 type ConfigOption func(*ConfigOptions) error
 
+// SetHost - Set registry host
 func SetHost(host string) ConfigOption {
 	return func(opt *ConfigOptions) error {
 		opt.host = host
@@ -34,6 +36,7 @@ func SetHost(host string) ConfigOption {
 	}
 }
 
+// SetProvider - Set a registry provider
 func SetProvider(provider providers.Provider) ConfigOption {
 	return func(opt *ConfigOptions) error {
 		opt.provider = provider
@@ -59,13 +62,16 @@ func Init(options ...ConfigOption) *Registrar {
 		host = opt.host
 	}
 
+	// If an environment variable is set, override
+	if os.Getenv("STACK_REG_HOST") != "" {
+		host = os.Getenv("STACK_REG_HOST")
+	}
+
 	provider := providers.Kong(host)
 
 	if opt.provider != nil {
 		provider = opt.provider
 	}
-
-	// @todo - add environment variable check here
 
 	return &Registrar{host, provider}
 }

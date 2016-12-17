@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	defaultHost = "http://localhost:8001"
+	defaultHost = "http://localhost:8001/apis"
 )
 
 type Registry interface {
@@ -55,17 +55,15 @@ func Init(options ...ConfigOption) *Registrar {
 
 	host := defaultHost
 
-	provider := providers.Kong(defaultHost)
-
 	if opt.host != "" {
 		host = opt.host
 	}
 
+	provider := providers.Kong(host)
+
 	if opt.provider != nil {
 		provider = opt.provider
 	}
-
-	// @todo - add environment variable check here
 
 	return &Registrar{host, provider}
 }

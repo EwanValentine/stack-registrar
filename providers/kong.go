@@ -9,9 +9,9 @@ import (
 )
 
 type KongService struct {
-	Name     string `json:"name"`
-	Upstream string `json:"upstream_url"`
-	Host     string `json:"request_host"`
+	Name        string `json:"name"`
+	UpstreamURL string `json:"upstream_url"`
+	Host        string `json:"request_host"`
 }
 
 type KongProvider struct {
@@ -42,7 +42,7 @@ func (provider *KongProvider) Resolve(id string) (*services.Service, error) {
 	service := &services.Service{
 		Name:     kongService.Name,
 		Host:     kongService.Host,
-		Upstream: kongService.UpstreamUrl,
+		Upstream: kongService.UpstreamURL,
 	}
 
 	return service, nil
